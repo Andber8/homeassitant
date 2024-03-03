@@ -2,7 +2,10 @@ alias: Nordpool_12h
 description: >-
   Original by @https://community.home-assistant.io/u/Michael_Dahl,
   Adapted by Andber8 - Find latest code @ https://github.com/Andber8/homeassitant/edit/main/nordpool12h.yaml
-  More info @ https://github.com/cokeman0/OpenEpaperElectricPriceTag
+    - Main difference is price in Swedish öre and no decimals.
+  To use create a new automation. Click the three dots in uppre right corner. Choose "Edit in YAML". Select all in the window seen and delete it and replace with this code.
+  Be sure to change the "sensor.nordpool" and "open_epaper_link.0000021C67CD3B16" to your region and the ID of your tag.
+  More info about the origianl code @ https://github.com/cokeman0/OpenEpaperElectricPriceTag
 trigger:
   - platform: time_pattern
     minutes: "0"
