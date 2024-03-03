@@ -1,0 +1,119 @@
+alias: Ute & Elpris1
+description: >-
+  Created by https://github.com/jonasniesner/open_epaper_link_homeassistant/wiki/Electricity-price-and-usage-costs
+  Adapted by Andber8 - Find latest code @ jksfkjsfkjskjsfkj
+trigger:
+  - platform: time_pattern
+    minutes: "0"
+    enabled: true
+  - platform: state
+    entity_id:
+      - sensor.nordpool_kwh_se3_sek_3_10_025
+    attribute: tomorrow_valid
+    enabled: true
+
+
+
+
+action:
+  service: open_epaper_link.drawcustom
+  target:
+    entity_id: 
+      open_epaper_link.0000021B50473B17 # Tag H
+  data:
+    background: white
+    rotate: 0
+    dry-run: false
+    payload:
+      - type: line
+        fill: red
+        width: 2
+        x_start: 135
+        x_end: 135
+        y_start: 0
+        y_end: 105
+      - type: line
+        fill: red
+        width: 2
+        x_start: 0
+        x_end: 296
+        y_start: 105
+        y_end: 105
+      - type: text
+        value: Ute
+        font: ppb.ttf
+        x: 72
+        "y": 20
+        size: 30
+        color: black
+        anchor: mm
+      - type: text
+        value: |
+          {{ states('sensor.temperature_54') | round(1) }}°C
+        font: ppb.ttf
+        x: 72
+        "y": 58
+        size: 36
+        color: >-
+          {{'black' if states('sensor.temperature_54') | round(1) | int > 3
+          else 'red' }}
+        anchor: mm
+
+      - type: text
+        value: "{{ states('sensor.nordpool_kwh_se3_sek_3_10_025') | float * 100 | round(0) }}"
+        font: ppb.ttf
+        x: 224
+        "y": 33
+        size: 50
+        color: >-
+          {{'black' if state_attr('sensor.nordpool_kwh_se3_sek_3_10_025', 'low_price') == true else
+          'red' }}
+        anchor: mm
+      - type: text
+        value: öre/kWh
+        font: ppb.ttf
+        x: 225
+        "y": 65
+        size: 18
+        color: black
+        anchor: mm
+      - type: icon
+        value: arrow-down
+        x: 150
+        "y": 83
+        size: 20
+        color: black
+      - type: text
+        value: "{{ state_attr('sensor.nordpool_kwh_se3_sek_3_10_025', 'min') | float * 100 | round(0) }}"
+        font: ppb.ttf
+        x: 170
+        "y": 93
+        size: 22
+        color: >-
+          {{'black' if state_attr('sensor.nordpool_kwh_se3_sek_3_10_025', 'min') | float * 100 | int <= 150 else
+          'red' }}
+        anchor: lm
+      - type: text
+        value: "{{ state_attr('sensor.nordpool_kwh_se3_sek_3_10_025', 'max') | float * 100 | round(0) }}"
+        font: ppb.ttf
+        x: 277
+        "y": 93
+        size: 22
+        color: >-
+          {{'black' if state_attr('sensor.nordpool_kwh_se3_sek_3_10_025', 'max') | float * 100 | int <= 100 else
+          'red' }}
+        anchor: rm
+      - type: icon
+        value: arrow-up
+        x: 277
+        "y": 83
+        size: 20
+        color: black
+      - type: text
+        value: "Uppdaterad: {{now().strftime(\"%X\")}}"
+        font: ppb.ttf
+        x: 3
+        "y": 115
+        size: 16
+        color: black
+        anchor: lm
