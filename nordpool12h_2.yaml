@@ -1,0 +1,477 @@
+alias: Nordpool_12h_2
+description: >-
+  Original by @https://community.home-assistant.io/u/Michael_Dahl,
+  Adapted by Andber8 - Find latest code @ https://github.com/Andber8/homeassitant/edit/main/nordpool12h.yaml
+    - Main difference is price in Swedish öre and no decimals.
+  To use create a new automation. Click the three dots in uppre right corner. Choose "Edit in YAML". Select all in the window seen and delete it and replace with this code.
+  Be sure to change the "sensor.nordpool" and "open_epaper_link.0000021C67CD3B16" to your region and the ID of your tag.
+  More info about the origianl code @ https://github.com/cokeman0/OpenEpaperElectricPriceTag
+trigger:
+  - platform: time_pattern
+    minutes: "0"
+    enabled: true
+  - platform: state
+    entity_id:
+      - sensor.nordpool_kwh_se3_sek_3_10_025
+    attribute: tomorrow_valid
+    enabled: true
+condition:
+  - condition: time
+    after: "06:00:00"
+    before: "23:30:00"
+    enabled: true
+action:
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+    enabled: true
+  - service: open_epaper_link.drawcustom
+    target:
+      entity_id:
+        - open_epaper_link.0000021C67CD3B16
+        # Tag E
+    data:
+      dry-run: false
+      background: white
+      rotate: 0
+      ttl: 15
+      payload:
+        - type: text
+          value: "{{ (currentprice | float(0)*100)|round() }}/kWh" 
+          font: ppb.ttf
+          x: 200
+          "y": 2
+          size: 20
+          color: black
+          anchor: rt
+        - type: text
+          value: "{{ (lowprice | float(0)*100)|round(0) }}"
+          font: ppb.ttf
+          x: 290
+          "y": 2
+          size: 18
+          color: black
+          anchor: rt
+        - type: text
+          value: "{{ (highprice | float(0)*100)|round(0) }}"
+          font: ppb.ttf
+          x: 250
+          "y": 2
+          size: 18
+          color: red
+          anchor: rt
+        - type: text
+          value: >
+            {{
+            ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'][now().weekday()]
+            }} {{(now()|as_timestamp)|timestamp_custom("%H:%M", True) }}
+          font: ppb.ttf
+          x: 2
+          "y": 2
+          size: 16
+          color: black
+          anchor: lt
+        - type: line
+          x_start: 0
+          x_end: 296
+          y_start: 114
+          y_end: 114
+          width: 1
+          fill: black
+
+        - type: rectangle
+          x_start: "{{ spacing[0]|int-spacingwith }}"
+          x_end: "{{ spacing[0]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[0]|float == 9999.9999 else (grafbottom)-(pris2[0]|float*(maxgrafhigh)/highpricegraph) | int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[0]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[0]|float >= highprice3 %}red{% elif pris2[0]|float<= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour] }}"
+          font: ppb.ttf
+          x: "{{ spacing[0] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[0]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[0]|float == 9999.9999 else ((pris2[0]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[0] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[0]|float == 9999.9999 else ((grafbottom)-(pris2[0]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[0]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[1]|int-spacingwith }}"
+          x_end: "{{ spacing[1]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[1]|float == 9999.9999 else (grafbottom)-(pris2[1]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[1]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[1]|float >= highprice3 %}red{% elif pris2[1]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+1] }}"
+          font: ppb.ttf
+          x: "{{ spacing[1] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[1]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[1]|float == 9999.9999 else ((pris2[1]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[1] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[1]|float == 9999.9999 else ((grafbottom)-(pris2[1]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[1]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[2]|int-spacingwith }}"
+          x_end: "{{ spacing[2]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[2]|float == 9999.9999 else (grafbottom)-(pris2[2]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[2]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[2]|float >= highprice3 %}red{% elif pris2[2]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+2] }}"
+          font: ppb.ttf
+          x: "{{ spacing[2] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[2]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[2]|float == 9999.9999 else ((pris2[2]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[2] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[2]|float == 9999.9999 else ((grafbottom)-(pris2[2]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[2]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[3]|int-spacingwith }}"
+          x_end: "{{ spacing[3]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[3]|float == 9999.9999 else (grafbottom)-(pris2[3]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[3]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[3]|float >= highprice3 %}red{% elif pris2[3]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+3] }}"
+          font: ppb.ttf
+          x: "{{ spacing[3] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[3]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[3]|float == 9999.9999 else ((pris2[3]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[3] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[3]|float == 9999.9999 else ((grafbottom)-(pris2[3]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[3]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[4]|int-spacingwith }}"
+          x_end: "{{ spacing[4]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[4]|float == 9999.9999 else (grafbottom)-(pris2[4]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[4]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[4]|float >= highprice3 %}red{% elif pris2[4]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+4] }}"
+          font: ppb.ttf
+          x: "{{ spacing[4] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[4]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[4]|float == 9999.9999 else ((pris2[4]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[4] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[4]|float == 9999.9999 else ((grafbottom)-(pris2[4]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[4]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[5]|int-spacingwith }}"
+          x_end: "{{ spacing[5]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[5]|float == 9999.9999 else (grafbottom)-(pris2[5]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[5]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[5]|float >= highprice3 %}red{% elif pris2[5]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+5] }}"
+          font: ppb.ttf
+          x: "{{ spacing[5] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[5]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[5]|float == 9999.9999 else ((pris2[5]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[5] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[5]|float == 9999.9999 else ((grafbottom)-(pris2[5]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[5]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[6]|int-spacingwith }}"
+          x_end: "{{ spacing[6]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[6]|float == 9999.9999 else (grafbottom)-(pris2[6]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[6]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[6]|float >= highprice3 %}red{% elif pris2[6]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+6] }}"
+          font: ppb.ttf
+          x: "{{ spacing[6] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[6]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[6]|float == 9999.9999 else ((pris2[6]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[6] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[6]|float == 9999.9999 else ((grafbottom)-(pris2[6]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[6]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: rectangle
+          x_start: "{{ spacing[7]|int-spacingwith }}"
+          x_end: "{{ spacing[7]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[7]|float == 9999.9999 else (grafbottom)-(pris2[7]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[7]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[7]|float >= highprice3 %}red{% elif pris2[7]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+7] }}"
+          font: ppb.ttf
+          x: "{{ spacing[7] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[7]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[7]|float == 9999.9999 else ((pris2[7]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[7] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[7]|float == 9999.9999 else ((grafbottom)-(pris2[7]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[7]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[8]|int-spacingwith }}"
+          x_end: "{{ spacing[8]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[8]|float == 9999.9999 else (grafbottom)-(pris2[8]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[8]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[8]|float >= highprice3 %}red{% elif pris2[8]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+8] }}"
+          font: ppb.ttf
+          x: "{{ spacing[8] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[8]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[8]|float == 9999.9999 else ((pris2[8]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[8] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[8]|float == 9999.9999 else ((grafbottom)-(pris2[8]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[8]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: rectangle
+          x_start: "{{ spacing[9]|int-spacingwith }}"
+          x_end: "{{ spacing[9]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[9]|float == 9999.9999 else (grafbottom)-(pris2[9]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[9]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[9]|float >= highprice3 %}red{% elif pris2[9]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+9] }}"
+          font: ppb.ttf
+          x: "{{ spacing[9] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[9]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[9]|float == 9999.9999 else ((pris2[9]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[9] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[9]|float == 9999.9999 else ((grafbottom)-(pris2[9]|float*(maxgrafhigh)/highpricegraph)|int)
+            - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[9]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[10]|int-spacingwith }}"
+          x_end: "{{ spacing[10]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[10]|float == 9999.9999 else (grafbottom)-(pris2[10]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[10]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[10]|float >= highprice3 %}red{% elif pris2[10]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+10] }}"
+          font: ppb.ttf
+          x: "{{ spacing[10] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[10]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[10]|float == 9999.9999 else ((pris2[10]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[10] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[10]|float == 9999.9999 else ((grafbottom)-(pris2[10]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[10]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+
+        - type: rectangle
+          x_start: "{{ spacing[11]|int-spacingwith }}"
+          x_end: "{{ spacing[11]|int+spacingwith }}"
+          y_start: >-
+            {{ grafbottom if pris2[11]|float == 9999.9999 else (grafbottom)-(pris2[11]|float*(maxgrafhigh)/highpricegraph)|int }}
+          y_end: "{{ grafbottom }}"
+          width: "{% if pris2[11]|float <= lowprice3 %}4{% else %}1{%endif%}"
+          fill: >-
+            {% if pris2[11]|float >= highprice3 %}red{% elif pris2[11]|float <= lowprice3 %}white{% else %}black{%endif%}
+          outline: black
+        - type: text
+          value: "{{ time[now().hour+11] }}"
+          font: ppb.ttf
+          x: "{{ spacing[11] }}"
+          "y": 118
+          size: 12
+          color: "{% if pris2[11]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+        - type: text
+          value: >-
+            {{ "NA" if pris2[11]|float == 9999.9999 else ((pris2[11]|float + priceCorrector) * priceMultiplicator * 100 )|round(0) }}
+          font: ppb.ttf
+          x: "{{ spacing[11] }}"
+          "y": >-
+            {{ grafbottom-grafpriceoffset if pris2[11]|float == 9999.9999 else ((grafbottom)-(pris2[11]|float*(maxgrafhigh)/highpricegraph)|int)
+              - grafpriceoffset }}
+          size: "{{ grafpricesize }}"
+          color: "{% if pris2[11]|float >= highprice3 %}red{% else %}black{%endif%}"
+          anchor: mt
+mode: single
+variables:
+  # configure from here
+  nordpoolSensor: 'sensor.nordpool_kwh_se3_sek_3_10_025'
+  priceCorrector: 0.000 # Surcharge as fixed amount (electricity certificates, trading fees or similar)
+  priceMultiplicator: 1.0 # Surcharge as percentage (VAT is included in Noredpool prices though)
+  graphLowestMaximum: 1 # This is the lowest maximum value the graph will use, to give better indication of the lowest prices
+  # / configure end
+
+  spacing: "{{ range(16, 281, 24) | list }}"
+  spacingwith: 7
+  maxgrafhigh: 90
+  grafbottom: 114
+  grafpricesize: 10
+  grafpriceoffset: 9
+  time24: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
+  time: "{{ time24 + time24 }}"
+  current_hour: "{{ now().hour }}"
+  today: "{{ state_attr(nordpoolSensor, 'today') }}"
+  tomorrow: "{{ state_attr(nordpoolSensor, 'tomorrow') }}"
+  tomorrow_valid: "{{ state_attr(nordpoolSensor, 'tomorrow_valid') }}"
+  fallback_tomorrow: [9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999, 9999.9999]
+  prices: >-
+    {% if tomorrow_valid %}
+      {{ today + tomorrow }}
+    {% else %}
+      {{ today + fallback_tomorrow }}
+    {% endif %}
+  currentprice: "{{ ((prices[current_hour] + priceCorrector) * priceMultiplicator) | round(2) }}"
+  next_12_hours_prices: "{{ prices[current_hour:current_hour+12] }}"
+  pris2: "{{ next_12_hours_prices }}" # compatible variable name
+  lowprice: "{{ (((next_12_hours_prices | min) + priceCorrector) * priceMultiplicator) | round(2) }}"
+  highprice: "{{ (((next_12_hours_prices | max) + priceCorrector) * priceMultiplicator) | round(2) }}"
+  highpricegraph: "{{ [highprice | float, graphLowestMaximum] | max }}"
+  sorted_prices: "{{ next_12_hours_prices | sort }}" # to pick high and low thirds
+  lowprice3: "{{ sorted_prices[2] }}"  # third lowest price
+  highprice3: "{{ sorted_prices[:-3] | last }}"  # third highest price
