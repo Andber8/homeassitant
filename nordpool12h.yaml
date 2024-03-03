@@ -1,8 +1,8 @@
-alias: Nordpool edition
+alias: Nordpool_12h
 description: >-
   Original by @https://community.home-assistant.io/u/Michael_Dahl,
-  Adapted by andber8 - Find latest code @ https://github.com/Andber8/homeassitant/edit/main/nordpool12h.yaml
-  https://github.com/cokeman0/OpenEpaperElectricPriceTag
+  Adapted by Andber8 - Find latest code @ https://github.com/Andber8/homeassitant/edit/main/nordpool12h.yaml
+  More info @ https://github.com/cokeman0/OpenEpaperElectricPriceTag
 trigger:
   - platform: time_pattern
     minutes: "0"
