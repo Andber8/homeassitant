@@ -1,7 +1,7 @@
 alias: Ute & Elpris1
 description: >-
   Created by https://github.com/jonasniesner/open_epaper_link_homeassistant/wiki/Electricity-price-and-usage-costs
-  Adapted by Andber8 - Find latest code @ jksfkjsfkjskjsfkj
+  Adapted by Andber8 - Find latest code @ https://github.com/Andber8/homeassitant/blob/main/ute_och_elpris.yaml
 trigger:
   - platform: time_pattern
     minutes: "0"
