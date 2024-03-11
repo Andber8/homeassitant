@@ -1,5 +1,20 @@
 alias: _Ute och Elpris - F
-description: vcvcv nnnn
+description: >-
+  Created by
+  https://github.com/jonasniesner/open_epaper_link_homeassistant/wiki/Electricity-price-and-usage-costs
+  Adapted by Andber8 - Find latest code
+  @https://github.com/Andber8/homeassitant/blob/main/ute_och_elpris.yaml  
+  To use create a new automation. Click the three dots in upper right corner.  
+  Choose "Edit in YAML". Select all in the window seen and delete it and replace with this code.  
+  Look at the bottom below variables and change;
+  myDisplayId: open_epaper_link.0000021FB8063B10 # Tag F
+  sensorText: Utomhus
+  tempSensor1: sensor.bedroom_sensor_2
+  tempSensor2: sensor.temperature_70
+  nordpoolSensor: sensor.nordpool_kwh_se3_sek_3_10_025 
+
+  More info about openetags @https://github.com/jjwbruijn/OpenEPaperLink
+
 trigger:
   - platform: time_pattern
     # Should fix this to use the variable updateInterval
