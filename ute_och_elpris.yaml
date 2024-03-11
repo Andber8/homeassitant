@@ -6,7 +6,7 @@ description: >-
   @https://github.com/Andber8/homeassitant/blob/main/ute_och_elpris.yaml  
   To use create a new automation. Click the three dots in upper right corner.  
   Choose "Edit in YAML". Select all in the window seen and delete it and replace with this code.  
-  Look at the bottom below variables and change;
+  Look at the bottom below "variables" and change at least the five first rows;
   myDisplayId: open_epaper_link.0000021FB8063B10 # Tag F
   sensorText: Utomhus
   tempSensor1: sensor.bedroom_sensor_2
